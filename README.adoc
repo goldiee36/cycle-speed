@@ -1,11 +1,33 @@
-Bicycle speed-o-meter with a few extra feature like real time clock, automated light and lithium battery chargable via micro USB port.
+Bicycle speed-o-meter with a few extra feature like real time clock, automated head- and taillight switching and lithium battery chargable via micro USB port.
 
-.Components:
+NOTE: The final hardware wiring and component are not yet decided so current working revision is only exist on a breadboard.
+
+.HW Components:
 * Arduino Pro Mini clone 3V3 16Mhz
 * 128x64 monochrome OLED display
 * DS3231 real time clock chip based module
 * a photoresistor
-* a lithium battery
-* a lithium battery charger module
+* any kind of 3.7V lithium battery (I am using a 14500 AA type Trustfire Flame 900mAh lithium battery)
+* a micro USB lithium battery charger module
+* two tacticle push button
+* an on-off switch
+* a 10k and a 20k resistor for voltage divider to able to measure battery voltage
+* a thermistor
+* piezo beeper
+
+.Features
+* customizable multi information display
+* current speed
+* battery status
+* daily trip counter
+* mileage counter
+* outside temperature
+* current time
+* stopper functions
+* remaining distance and time
+* speed limit (audible warning with the piezo beeper)
+* alarm-clock (piezo beeper)
+* alarm with switch off code in case of not permitted removing of the device or moving the bicycle (piezo beeper)
+
 
 WARNING: Lithium batteries are dangerous. Always handle with care.
