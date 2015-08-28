@@ -1,6 +1,6 @@
 Bicycle speed-o-meter with a few extra feature like real time clock, automated head- and taillight switching and lithium battery chargable via micro USB port.
 
-NOTE: The final hardware wiring and component are not yet decided so current working revision is only exist on a breadboard.
+NOTE: The final hardware wiring and component are not yet decided so current working revision is only exist on a breadboard. *Please stay tuned for further updates! Detailed hardware assembly and usage manual will be uploaded!*
 
 .HW Components:
 * Arduino Pro Mini clone 3V3 16Mhz
