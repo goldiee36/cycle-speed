@@ -5,6 +5,7 @@ NOTE: The final hardware wiring and component are not yet decided so current wor
 .HW Components:
 * Arduino Pro Mini clone 3V3 16Mhz
 * 128x64 monochrome OLED display
+* a reed switch
 * DS3231 real time clock chip based module
 * a photoresistor
 * any kind of 3.7V lithium battery (I am using a 14500 AA type Trustfire Flame 900mAh lithium battery)
