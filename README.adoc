@@ -1,0 +1,11 @@
+Bicycle speed-o-meter with a few extra feature like real time clock, automated light and lithium battery chargable via micro USB port.
+
+.Components:
+* Arduino Pro Mini clone 3V3 16Mhz
+* 128x64 monochrome OLED display
+* DS3231 real time clock chip based module
+* a photoresistor
+* a lithium battery
+* a lithium battery charger module
+
+WARNING: Lithium batteries are dangerous. Always handle with care.
