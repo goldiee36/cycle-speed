@@ -23,7 +23,8 @@ NOTE: The final hardware wiring and component are not yet decided so current wor
 * mileage counter
 * outside temperature
 * current time
-* stopper functions
+* stopper
+* timer
 * remaining distance and time
 * speed limit (audible warning with the piezo beeper)
 * alarm-clock (piezo beeper)
