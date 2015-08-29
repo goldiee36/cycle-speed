@@ -73,19 +73,21 @@ void loop() {
 }
 
 void magnetDetected()
-{//debounce here?
-  dailyKm += MAGNETDISTANCE / 100000;
-  countedMagnets++;
-  if (stoppedState == 0) {
-    stoppedState = 1; //stopped 1 means the first reading after a stop
+{//debounce here
+  if (millis() - lastUpdate > 18) {
+    dailyKm += MAGNETDISTANCE / 100000;
+    countedMagnets++;
+    if (stoppedState == 0) {
+      stoppedState = 1; //stopped 1 means the first reading after a stop
+    }
+    else if (millis() - lastUpdate > 350 || stoppedState == 1) {
+      kmph = MAGNETDISTANCE * 36 / (millis() - lastMagnet);
+      lastUpdate = millis();
+      stoppedState = 2; //state 2 means countinue cycling
+      needRefresh = true;
+    }  
+    lastMagnet = millis();
   }
-  else if (millis() - lastUpdate > 350 || stoppedState == 1) {
-    kmph = MAGNETDISTANCE * 36 / (millis() - lastMagnet);
-    lastUpdate = millis();
-    stoppedState = 2; //state 2 means countinue cycling
-    needRefresh = true;
-  }  
-  lastMagnet = millis();
 }
 
 void UpdateDisplay() {
