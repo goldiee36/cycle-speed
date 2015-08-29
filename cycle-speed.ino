@@ -47,9 +47,10 @@ void setup() {
 void loop() {   
   if (needRefresh) {
     needRefresh = false;
+    Serial.println(countedMagnets);
     UpdateDisplay();
   }
-  Serial.println(millis() - lastMagnet);
+  //Serial.println(millis() - lastMagnet);
   if (millis() - lastMagnet > RESETSPEED) {
     kmph = 0;
     stoppedState = 0;
@@ -134,8 +135,6 @@ void drawScreen(void) {
   //summary
   // 10p per number, 5p per space
   dtostrf(sumEEPROM + (countedMagnets*MAGNETDISTANCE)/100000, 4, 0, displayStr);
-  Serial.print("joo");
-  Serial.println(u8g.getStrWidth(displayStr));
   u8g.setPrintPos(108-u8g.getStrWidth(displayStr), 63);
   u8g.print(displayStr);
 
