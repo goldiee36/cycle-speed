@@ -12,12 +12,19 @@ U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);
 #define MAGNETDISTANCE CIRCUM/MAGNETS //cm
 #define RESETSPEED 2500 //ms
 
+//digital pins
 #define rpmPin 2
 #define buttonPin1 3
 #define buttonPin2 4
 #define beepPin 5
-#define lightPin 6
+#define headLightPin 6
 #define enablePin 7
+#define enablePinAux 8
+
+//analog pins
+#define lightSensor A1
+#define temperature A2
+#define rawBattery A3
 
 #define dailyKmAddress 0
 #define sumKmAddress 4
