@@ -13,17 +13,17 @@ U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);
 #define RESETSPEED 2500 //ms
 
 //digital pins
-#define rpmPin 2
-#define buttonPin1 3
+#define rpmPin 2 //interrupt 0
+#define buttonPin1 3 //interrupt 1
 #define buttonPin2 4
-#define beepPin 5
-#define headLightPin 6
+#define beepPin 5 //pwm
+#define headLightPin 6 //pwm
 #define enablePin 7
 #define enablePinAux 8
 
 //analog pins
 #define lightSensor A1
-#define temperature A2
+#define temperatureSensor A2
 #define rawBattery A3
 
 #define dailyKmAddress 0
@@ -43,8 +43,19 @@ volatile unsigned long countedMagnets = 0; //this + EEPROM sumMeter should be sa
 
 
 void setup() {
+  pinMode(buttonPin1, INPUT_PULLUP);
+  pinMode(buttonPin2, INPUT_PULLUP);
+  pinMode(beepPin, OUTPUT);
+  pinMode(headLightPin, OUTPUT);
   pinMode(enablePin, OUTPUT);
+  pinMode(enablePinAux, OUTPUT);
+  pinMode(lightSensor, INPUT_PULLUP);
+  pinMode(temperatureSensor, INPUT);
+  pinMode(rawBattery, INPUT);
+  digitalWrite(beepPin, LOW);
+  digitalWrite(headLightPin, LOW);
   digitalWrite(enablePin, LOW);
+  digitalWrite(enablePinAux, HIGH);
   u8g.begin(); 
   Serial.begin(9600);
   pinMode(rpmPin, INPUT_PULLUP);
