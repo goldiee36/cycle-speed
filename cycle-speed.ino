@@ -10,7 +10,8 @@ U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);
 #define MAGNETS 2 //number of magnets
 #define CIRCUM 2*RADIUS*3.1415926 //cm
 #define MAGNETDISTANCE CIRCUM/MAGNETS //cm
-#define RESETSPEED 2500 //ms
+#define RESETSPEED 2500 //ms, reset speed to zero
+#define DEBOUNCETIMEINTERVAL (MAGNETDISTANCE*36)/80
 
 //digital pins
 #define rpmPin 2 //interrupt 0
@@ -92,8 +93,8 @@ void loop() {
 }
 
 void magnetDetected()
-{//debounce here
-  if (millis() - lastMagnet > 20) {
+{
+  if (millis() - lastMagnet > DEBOUNCETIMEINTERVAL) {//debounce here
     dailyKm += MAGNETDISTANCE / 100000;
     countedMagnets++;
     if (stoppedState == 0) {
