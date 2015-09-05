@@ -10,7 +10,8 @@ U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);
 #define MAGNETS 2 //number of magnets
 #define CIRCUM 2*RADIUS*3.1415926 //cm
 #define MAGNETDISTANCE CIRCUM/MAGNETS //cm
-#define RESETSPEED 2500 //ms
+#define RESETSPEED 2500 //ms, reset speed to zero
+#define DEBOUNCETIMEINTERVAL (MAGNETDISTANCE*36)/80
 
 //digital pins
 #define rpmPin 2 //interrupt 0
@@ -65,9 +66,10 @@ void setup() {
 void loop() {   
   if (needRefresh) {
     needRefresh = false;
+    Serial.println(countedMagnets);
     UpdateDisplay();
   }
-  Serial.println(millis() - lastMagnet);
+  //Serial.println(millis() - lastMagnet);
   if (millis() - lastMagnet > RESETSPEED) {
     kmph = 0;
     stoppedState = 0;
@@ -92,18 +94,20 @@ void loop() {
 
 void magnetDetected()
 {
-  dailyKm += MAGNETDISTANCE / 100000;
-  countedMagnets++;
-  if (stoppedState == 0) {
-    stoppedState = 1; //stopped 1 means the first reading after a stop
+  if (millis() - lastMagnet > DEBOUNCETIMEINTERVAL) {//debounce here
+    dailyKm += MAGNETDISTANCE / 100000;
+    countedMagnets++;
+    if (stoppedState == 0) {
+      stoppedState = 1; //stopped 1 means the first reading after a stop
+    }
+    else if (millis() - lastUpdate > 350 || stoppedState == 1) {
+      kmph = MAGNETDISTANCE * 36 / (millis() - lastMagnet);
+      lastUpdate = millis();
+      stoppedState = 2; //state 2 means countinue cycling
+      needRefresh = true;
+    }  
+    lastMagnet = millis();
   }
-  else if (millis() - lastUpdate > 350 || stoppedState == 1) {
-    kmph = MAGNETDISTANCE * 36 / (millis() - lastMagnet);
-    lastUpdate = millis();
-    stoppedState = 2; //state 2 means countinue cycling
-    needRefresh = true;
-  }  
-  lastMagnet = millis();
 }
 
 void UpdateDisplay() {
@@ -150,8 +154,6 @@ void drawScreen(void) {
   //summary
   // 10p per number, 5p per space
   dtostrf(sumEEPROM + (countedMagnets*MAGNETDISTANCE)/100000, 4, 0, displayStr);
-  Serial.print("joo");
-  Serial.println(u8g.getStrWidth(displayStr));
   u8g.setPrintPos(108-u8g.getStrWidth(displayStr), 63);
   u8g.print(displayStr);
 
