@@ -19,8 +19,8 @@ U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);
 #define buttonPin2 4
 #define beepPin 5 //pwm
 #define headLightPin 6 //pwm
-#define enablePin 7
-#define enablePinAux 8
+#define enablePin 7 //to turn of OLED display and clock module
+#define enablePinAux 8 //tempsensor, lightsensor
 
 //analog pins
 #define lightSensor A1
@@ -34,6 +34,8 @@ volatile unsigned long lastMagnet;
 volatile unsigned long lastUpdate;
 volatile byte stoppedState = 0;
 volatile boolean needRefresh = true;
+
+unsigned long lastBattMeas;
 
 // travelled cm * 36 / elapsed ms = km/h
 
@@ -61,51 +63,54 @@ void setup() {
   Serial.begin(9600);
   pinMode(rpmPin, INPUT_PULLUP);
   attachInterrupt(rpmPin-2, magnetDetected, FALLING); //2-2 = 0 means digital pin 2
+  lastBattMeas = millis();
 }
 
 void loop() {   
   if (needRefresh) {
     needRefresh = false;
-    Serial.println(countedMagnets);
+    //Serial.println(countedMagnets); //for detecting rpm bounce
     UpdateDisplay();
   }
-  //Serial.println(millis() - lastMagnet);
-  if (millis() - lastMagnet > RESETSPEED) {
+  if (millis() - lastMagnet > RESETSPEED) { //if no magenet detected for RESETSPEED milliseconds we assume bike is stopped.
     kmph = 0;
     stoppedState = 0;
-    UpdateDisplay();
-    //time to save datas to EEPROM
-    //EEPROM.updateFloat(dailyKmAddress, dailyKm);
-    //EEPROM.updateFloat(sumKmAddress, sumEEPROM + (countedMagnets*MAGNETDISTANCE)/100000);
-    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+    UpdateDisplay();    
+    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); //complete controller power down for 8 seconds, but interruprt can always wake the controller up. Display remains active
     //test is needed how the sleep ended: interrupt or simply the timer ran out
     if (millis() - lastMagnet > RESETSPEED) {//even if the millis is not upadted during the powerdown, if a magnet interrupt happened the conditon will fail. IF NOT: time to turn off display and clock
-      digitalWrite(enablePin, HIGH);
-      LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
-      digitalWrite(enablePin, LOW); //poweroff is over due to rpm interrupt --> we are moving again
+      //time to save datas to EEPROM too
+      //EEPROM.updateFloat(dailyKmAddress, dailyKm);
+      //EEPROM.updateFloat(sumKmAddress, sumEEPROM + (countedMagnets*MAGNETDISTANCE)/100000);
+      digitalWrite(enablePin, HIGH); //turn off display and clock module
+      LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF); //power down controller "forever", only interruprt can wake it up
+      //poweroff is over due to rpm interrupt --> we are moving again
+      digitalWrite(enablePin, LOW); //turn on display and clock module
       u8g.begin();
-      UpdateDisplay();
+      UpdateDisplay(); //***** not sure if needed, because speed is not determined yet
     }
   }
-  while (!(millis() - lastMagnet > RESETSPEED) && !needRefresh) {
+  while (!(millis() - lastMagnet > RESETSPEED) && !needRefresh) { //some ppower saving: if no screen refresh is needed and we do not reach the RESETSPEED time interval (so we are still moving) we can put the controller in idle.
+    //Timer0 must left running because of the millis and because of this timer this idle won't take forever. Thats why the while is needed to put the controller back to idle.
     LowPower.idle(SLEEP_FOREVER, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_ON, SPI_OFF, USART0_OFF, TWI_OFF);    
     }
 }
 
+//called by the digital pin 2 interrupt on FALLING edge
 void magnetDetected()
 {
   if (millis() - lastMagnet > DEBOUNCETIMEINTERVAL) {//debounce here
     dailyKm += MAGNETDISTANCE / 100000;
     countedMagnets++;
-    if (stoppedState == 0) {
-      stoppedState = 1; //stopped 1 means the first reading after a stop
+    if (stoppedState == 0) {//stopped 0 means that last state was stopped
+      stoppedState = 1; //stopped 1 means the we had the first reading after a stop. We need 2 readings after a stop to be able to calculate the speed.
     }
-    else if (millis() - lastUpdate > 350 || stoppedState == 1) {
+    else if (millis() - lastUpdate > 350 || stoppedState == 1) { //lastUpdate is used to not refresh the screen to fast in case of the readings coming in fast. If stopped state is 1 then we can refresh immediately though 
       kmph = MAGNETDISTANCE * 36 / (millis() - lastMagnet);
       lastUpdate = millis();
       stoppedState = 2; //state 2 means countinue cycling
-      needRefresh = true;
-    }  
+      needRefresh = true; // this will be checked in the main loop to trigger the screen refresh
+    }
     lastMagnet = millis();
   }
 }
@@ -120,6 +125,8 @@ void UpdateDisplay() {
 }
 
 void drawScreen(void) {
+  //variables printed: kmph, dailyKm, sumEEPROM
+  
   //speedo numbers if using u8g_font_osb35n then 1 number is 28 p wide
   //the dot is 14 p wide, so 1.2 = 70p 12.3 = 98p
   u8g.setFont(u8g_font_osb35n);
@@ -139,7 +146,7 @@ void drawScreen(void) {
   
   //daily counters  
   u8g.setFont(u8g_font_helvB18r);
-  // 13p per number, 6p per space
+  // 13p per number (12p + 1 spaceing), 6p per space
   char displayStr[5];
   dtostrf(dailyKm, 4, 1, displayStr);
   byte xPosOffset = 0;
@@ -149,7 +156,7 @@ void drawScreen(void) {
   u8g.print(displayStr[0]); u8g.print(displayStr[1]);
   u8g.setFont(u8g_font_helvB14r);  
   u8g.setPrintPos(26, 63);
-  u8g.print("."); u8g.print(displayStr[3]);  
+  u8g.print("."); u8g.print(displayStr[3]);  //dot is 4p width (3p + 1p spaceing)
   
   //summary
   // 10p per number, 5p per space
