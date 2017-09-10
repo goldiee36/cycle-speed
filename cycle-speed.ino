@@ -92,8 +92,8 @@ void loop() {
 }
 
 void magnetDetected()
-{//debounce here
-  if (millis() - lastMagnet > 20) {
+{
+  if (millis() - lastMagnet > 1) { //debounce here
     dailyKm += MAGNETDISTANCE / 100000;
     countedMagnets++;
     if (stoppedState == 0) {
